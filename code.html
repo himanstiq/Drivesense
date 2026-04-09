@@ -1,0 +1,565 @@
+<!doctype html>
+<html class="light" lang="en" style="">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&amp;family=Manrope:wght@200;300;400;500;600;700;800&amp;family=Lexend:wght@100;200;300;400;500;600;700;800;900&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary-container": "#505254",
+              error: "#b02500",
+              "primary-fixed-dim": "#f56364",
+              "on-background": "#4c212b",
+              "secondary-fixed-dim": "#d4d4d7",
+              "primary-fixed": "#ff7574",
+              "on-tertiary-container": "#450e7b",
+              "on-primary-fixed-variant": "#60000d",
+              "on-tertiary-fixed-variant": "#4e1c84",
+              "error-container": "#f95630",
+              "surface-container-high": "#ffd9df",
+              "surface-dim": "#ffc6cf",
+              "outline-variant": "#dc9ca8",
+              "primary-container": "#ff7574",
+              "on-error-container": "#520c00",
+              "surface-tint": "#aa2c32",
+              background: "#fff4f4",
+              primary: "#aa2c32",
+              "on-secondary-fixed": "#3e3f42",
+              secondary: "#5a5c5e",
+              "tertiary-fixed": "#ca9cff",
+              surface: "#fff4f4",
+              "on-primary": "#ffefee",
+              "surface-container-highest": "#ffd1d8",
+              "inverse-primary": "#ff6b6b",
+              "tertiary-fixed-dim": "#be8df8",
+              "tertiary-container": "#ca9cff",
+              "surface-variant": "#ffd1d8",
+              "secondary-fixed": "#e2e2e5",
+              outline: "#a06772",
+              "on-secondary": "#f2f2f5",
+              "on-tertiary-fixed": "#26004a",
+              "surface-bright": "#fff4f4",
+              "primary-dim": "#992027",
+              "tertiary-dim": "#66369c",
+              "inverse-surface": "#24020b",
+              "secondary-container": "#e2e2e5",
+              "on-secondary-fixed-variant": "#5a5c5e",
+              "on-primary-fixed": "#000000",
+              "on-primary-container": "#4e0009",
+              tertiary: "#7343a9",
+              "on-error": "#ffefec",
+              "surface-container": "#ffe1e5",
+              "inverse-on-surface": "#cb8c98",
+              "surface-container-lowest": "#ffffff",
+              "error-dim": "#b92902",
+              "secondary-dim": "#4e5052",
+              "on-tertiary": "#faefff",
+              "surface-container-low": "#ffecee",
+              "on-surface-variant": "#814c57",
+              "on-surface": "#4c212b",
+            },
+            borderRadius: {
+              DEFAULT: "0.125rem",
+              lg: "0.25rem",
+              xl: "0.5rem",
+              full: "0.75rem",
+            },
+            fontFamily: {
+              headline: ["Space Grotesk"],
+              body: ["Manrope"],
+              label: ["Lexend"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+      .bento-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 1.5rem;
+      }
+      .text-stroke {
+        -webkit-text-stroke: 1px currentColor;
+        -webkit-text-fill-color: transparent;
+      }
+      body {
+        background-color: #fff4f4;
+        color: #4c212b;
+      }
+      .text-stroke-distinct {
+        -webkit-text-stroke: 2px #4c212b;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.2));
+      }
+      .hero-text-shadow {
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+    </style>
+  </head>
+  <body
+    class="font-body selection:bg-primary-container selection:text-on-primary-container"
+  >
+    <!-- Top Navigation Bar -->
+    <nav
+      class="bg-white/70 dark:bg-rose-950/70 backdrop-blur-xl fixed top-0 w-full z-50 flex justify-between items-center px-8 md:px-12 py-4 max-w-full"
+    >
+      <div class="flex items-center gap-0">
+        <span
+          class="text-2xl font-black italic text-red-800 dark:text-red-100 font-headline tracking-tighter"
+          style=""
+          >Drivesense</span
+        >
+      </div>
+      <div class="hidden md:flex items-center gap-8 ml-8">
+        <a
+          class="font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors"
+          href="#"
+          style=""
+          >Dashboard</a
+        >
+        <a
+          class="font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors"
+          href="#"
+          style=""
+          >Simulation</a
+        >
+        <a
+          class="font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors"
+          href="#"
+          style=""
+          >Product</a
+        >
+        <a
+          class="font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors"
+          href="#"
+          style=""
+          >About us</a
+        >
+      </div>
+      <div class="flex items-center gap-6">
+        <div class="flex gap-4">
+          <button
+            class="scale-95 active:scale-90 transition-transform text-red-700"
+            style=""
+          >
+            <span class="material-symbols-outlined" style=""
+              >notifications</span
+            >
+          </button>
+          <div class="flex items-center gap-3">
+            <div
+              class="w-8 h-8 rounded-full overflow-hidden p-0.5 bg-gradient-to-tr from-primary to-primary-container"
+            >
+              <img
+                alt="Marc Marquez Profile"
+                class="w-full h-full object-cover rounded-full"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYyMy_KeyJBrFVjw4sfb8OdogOyW0pkBlGJbtV-Mg3fryjwQc9mBWIG8TRJ7KHMTaxKiZX2otKJtgrYMJXGe4m1xnlxe3dAMXXURmLWb0hKqbl7uK2v4mjzgNAx9yYlaiZmSeVtgG60ZX-Cy12sU9kCIROGzRJNLrND0gNe9sBksz7hV5lSUhN55ilJXEB1SP3sAKFnM06vD1QPj8OeeC5omybzyzLOvGgZ0fHnVk-jM6Ug8Ifj-f7Z3NfYRri6rwvpFS99Tvpu0I"
+                style=""
+              />
+            </div>
+            <span
+              class="hidden sm:block text-xs font-headline font-bold uppercase text-red-800"
+              style=""
+              >M. Márquez</span
+            >
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div class="flex min-h-screen pt-20">
+      <!-- Main Canvas expanded to full width -->
+      <main class="flex-1 overflow-x-hidden">
+        <!-- Content Wrapper -->
+        <div class="max-w-screen-2xl mx-auto p-6 md:p-12 lg:px-24">
+          <!-- Stats Bar -->
+          <div
+            class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24 relative z-30"
+          >
+            <div
+              class="bg-white p-10 rounded-2xl flex flex-col items-center justify-center text-center shadow-xl border border-outline-variant/30"
+            >
+              <span
+                class="font-headline text-7xl font-black text-primary mb-2"
+                style=""
+                >8</span
+              >
+              <span
+                class="font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant"
+                style=""
+                >Harsh Braking &amp; Acceleration</span
+              >
+            </div>
+            <div
+              class="bg-white p-10 rounded-2xl flex flex-col items-center justify-center text-center shadow-xl border border-outline-variant/30"
+            >
+              <span
+                class="font-headline text-7xl font-black text-primary mb-2"
+                style=""
+                >85</span
+              >
+              <span
+                class="font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant"
+                style=""
+                >Sharp CORNERing</span
+              >
+            </div>
+            <div
+              class="bg-white p-10 rounded-2xl flex flex-col items-center justify-center text-center shadow-xl border border-outline-variant/30"
+            >
+              <span
+                class="font-headline text-7xl font-black text-primary mb-2"
+                style=""
+                >140</span
+              >
+              <span
+                class="font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant"
+                style=""
+                >Rollover SIGNATUREs</span
+              >
+            </div>
+          </div>
+          <!-- Bento Content Section -->
+          <div class="bento-grid">
+            <!-- Biography -->
+            <div
+              class="col-span-12 lg:col-span-8 bg-surface-container-lowest p-12 rounded-3xl shadow-sm"
+            >
+              <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-1 bg-primary"></div>
+                <h2 class="font-headline text-3xl font-bold uppercase" style="">
+                  GPS View
+                </h2>
+              </div>
+              <div class="space-y-6">
+                <p
+                  class="font-body text-xl leading-relaxed text-on-surface/80"
+                  style=""
+                >
+                  Known for his aggressive riding style and uncanny ability to
+                  save crashes that seem impossible, Marc Márquez changed the
+                  sport forever when he entered MotoGP in 2013. His nickname,
+                  "The Ant," represents the spirit of a tiny creature that can
+                  carry many times its own weight—reflecting Marc's immense
+                  strength and resilience.
+                </p>
+                <p
+                  class="font-body text-lg text-on-surface-variant leading-relaxed"
+                  style=""
+                >
+                  Marc's career is defined by boundary-pushing physics. Whether
+                  it's dragging his elbows or shoulders at extreme lean angles
+                  or recovering from career-threatening injuries, he remains the
+                  ultimate competitor. After a decade of dominance with Honda,
+                  his transition to Gresini Racing marks a bold new chapter in a
+                  legendary story.
+                </p>
+              </div>
+              <!-- Highlights Timeline -->
+              <div class="mt-16 space-y-8">
+                <h3
+                  class="font-headline text-xl font-bold uppercase text-primary"
+                  style=""
+                >
+                  Career Milestones
+                </h3>
+                <div
+                  class="relative pl-8 space-y-12 before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-px before:bg-outline-variant"
+                >
+                  <div class="relative">
+                    <div
+                      class="absolute -left-[35px] top-1 w-3 h-3 rounded-full bg-primary ring-4 ring-surface"
+                    ></div>
+                    <span
+                      class="font-headline font-black text-2xl text-primary"
+                      style=""
+                      >2013</span
+                    >
+                    <h4 class="font-headline font-bold text-lg mt-1" style="">
+                      MotoGP Debut &amp; Youngest Champion
+                    </h4>
+                    <p class="font-body text-on-surface-variant mt-2" style="">
+                      Rewrote history by winning the title in his rookie year at
+                      age 20.
+                    </p>
+                  </div>
+                  <div class="relative">
+                    <div
+                      class="absolute -left-[35px] top-1 w-3 h-3 rounded-full bg-primary ring-4 ring-surface"
+                    ></div>
+                    <span
+                      class="font-headline font-black text-2xl text-primary"
+                      style=""
+                      >2014</span
+                    >
+                    <h4 class="font-headline font-bold text-lg mt-1" style="">
+                      Total Domination
+                    </h4>
+                    <p class="font-body text-on-surface-variant mt-2" style="">
+                      Recorded 13 wins in a single season, setting a new
+                      benchmark for performance.
+                    </p>
+                  </div>
+                  <div class="relative">
+                    <div
+                      class="absolute -left-[35px] top-1 w-3 h-3 rounded-full bg-primary ring-4 ring-surface"
+                    ></div>
+                    <span
+                      class="font-headline font-black text-2xl text-primary"
+                      style=""
+                      >2024</span
+                    >
+                    <h4 class="font-headline font-bold text-lg mt-1" style="">
+                      The Resurrection
+                    </h4>
+                    <p class="font-body text-on-surface-variant mt-2" style="">
+                      Legendary comebacks and transitioning to Ducati power to
+                      chase the ninth title.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Race Schedule & Live Telemetry -->
+            <div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+              <div class="bg-surface-container-high p-8 rounded-3xl flex-1">
+                <h2
+                  class="font-headline text-2xl font-bold uppercase mb-8"
+                  style=""
+                >
+                  Driver Details
+                </h2>
+                <div class="space-y-6">
+                  <div
+                    class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl"
+                  >
+                    <div>
+                      <span
+                        class="font-label text-[10px] font-bold text-primary uppercase tracking-widest"
+                        style=""
+                        >Oct 27</span
+                      >
+                      <h4 class="font-headline font-bold" style="">
+                        PT Grand Prix of Thailand
+                      </h4>
+                      <p
+                        class="font-body text-xs text-on-surface-variant"
+                        style=""
+                      >
+                        Chang International Circuit
+                      </p>
+                    </div>
+                    <span
+                      class="material-symbols-outlined text-primary"
+                      style=""
+                      >chevron_right</span
+                    >
+                  </div>
+                  <div
+                    class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl"
+                  >
+                    <div>
+                      <span
+                        class="font-label text-[10px] font-bold text-primary uppercase tracking-widest"
+                        style=""
+                        >Nov 03</span
+                      >
+                      <h4 class="font-headline font-bold" style="">
+                        Malaysian Grand Prix
+                      </h4>
+                      <p
+                        class="font-body text-xs text-on-surface-variant"
+                        style=""
+                      >
+                        Sepang International Circuit
+                      </p>
+                    </div>
+                    <span
+                      class="material-symbols-outlined text-primary"
+                      style=""
+                      >chevron_right</span
+                    >
+                  </div>
+                  <div
+                    class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl"
+                  >
+                    <div>
+                      <span
+                        class="font-label text-[10px] font-bold text-primary uppercase tracking-widest"
+                        style=""
+                        >Nov 17</span
+                      >
+                      <h4 class="font-headline font-bold" style="">
+                        Motul Grand Prix of Valencia
+                      </h4>
+                      <p
+                        class="font-body text-xs text-on-surface-variant"
+                        style=""
+                      >
+                        Circuit Ricardo Tormo
+                      </p>
+                    </div>
+                    <span
+                      class="material-symbols-outlined text-primary"
+                      style=""
+                      >chevron_right</span
+                    >
+                  </div>
+                </div>
+                <button
+                  class="w-full mt-8 py-4 border border-primary/20 rounded-xl font-headline font-bold uppercase text-primary hover:bg-primary hover:text-white transition-all text-sm"
+                  style=""
+                >
+                  Full Season Schedule
+                </button>
+              </div>
+              <!-- Performance Chip / Quick Card -->
+              <div
+                class="bg-inverse-surface text-surface p-8 rounded-3xl shadow-xl"
+              >
+                <span
+                  class="font-label text-xs font-bold uppercase text-primary tracking-[0.2em]"
+                  style=""
+                  >Live Telemetry</span
+                >
+                <div class="mt-4 flex items-baseline gap-2">
+                  <span class="font-headline text-5xl font-black" style=""
+                    >352</span
+                  >
+                  <span class="font-label text-sm text-surface/60" style=""
+                    >KM/H</span
+                  >
+                </div>
+                <p
+                  class="font-body text-xs text-surface/50 mt-2 uppercase tracking-widest"
+                  style=""
+                >
+                  Top Speed recorded this season
+                </p>
+                <div class="mt-6 flex gap-2">
+                  <div class="h-1 flex-1 bg-primary"></div>
+                  <div class="h-1 flex-1 bg-surface/10"></div>
+                  <div class="h-1 flex-1 bg-surface/10"></div>
+                </div>
+              </div>
+            </div>
+            <!-- Visual Gallery -->
+          </div>
+          <!-- Footer -->
+          <footer
+            class="mt-24 pt-12 border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-8 mb-24 md:mb-12"
+          >
+            <div class="flex flex-col gap-2">
+              <span
+                class="text-3xl font-black italic text-red-800 dark:text-red-100 font-headline tracking-tighter"
+                style=""
+                >Drivesense</span
+              >
+              <p
+                class="font-body text-xs text-on-surface-variant uppercase tracking-widest"
+                style=""
+              >
+                Techno Tuners • © 2026 yantrikaran privated Limited
+              </p>
+            </div>
+            <div class="flex gap-8">
+              <a
+                class="font-headline text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors"
+                href="#"
+                style=""
+                >Privacy Policy</a
+              >
+              <a
+                class="font-headline text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors"
+                href="#"
+                style=""
+                >Terms &amp; CONDITIONS</a
+              >
+              <a
+                class="font-headline text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors"
+                href="#"
+                style=""
+                >Press release</a
+              >
+            </div>
+            <div class="flex gap-4">
+              <button
+                class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container hover:bg-primary hover:text-white transition-all"
+                style=""
+              >
+                <span class="material-symbols-outlined" style="">share</span>
+              </button>
+              <button
+                class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container hover:bg-primary hover:text-white transition-all"
+                style=""
+              >
+                <span class="material-symbols-outlined" style="">mail</span>
+              </button>
+            </div>
+          </footer>
+        </div>
+      </main>
+    </div>
+    <!-- Mobile Navigation -->
+    <div
+      class="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg px-8 py-4 flex justify-between items-center z-50 border-t border-red-100"
+    >
+      <button class="text-primary flex flex-col items-center gap-1" style="">
+        <span
+          class="material-symbols-outlined"
+          style="font-variation-settings: &quot;FILL&quot; 1"
+          >speed</span
+        >
+        <span class="text-[10px] font-headline font-bold uppercase" style=""
+          >Home</span
+        >
+      </button>
+      <button
+        class="text-rose-900/40 flex flex-col items-center gap-1"
+        style=""
+      >
+        <span class="material-symbols-outlined" style="">history</span>
+        <span class="text-[10px] font-headline font-bold uppercase" style=""
+          >Stats</span
+        >
+      </button>
+      <button
+        class="text-rose-900/40 flex flex-col items-center gap-1"
+        style=""
+      >
+        <span class="material-symbols-outlined" style="">calendar_today</span>
+        <span class="text-[10px] font-headline font-bold uppercase" style=""
+          >Races</span
+        >
+      </button>
+      <button
+        class="text-rose-900/40 flex flex-col items-center gap-1"
+        style=""
+      >
+        <span class="material-symbols-outlined" style="">person</span>
+        <span class="text-[10px] font-headline font-bold uppercase" style=""
+          >Profile</span
+        >
+      </button>
+    </div>
+  </body>
+</html>

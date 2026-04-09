@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colors */
+  --color-primary: #aa2c32;
+  --color-primary-container: #ff7574;
+  --color-primary-fixed: #ff7574;
+  --color-primary-fixed-dim: #f56364;
+  --color-primary-dim: #992027;
+  --color-on-primary: #ffefee;
+  --color-on-primary-fixed: #000000;
+  --color-on-primary-fixed-variant: #60000d;
+  --color-on-primary-container: #4e0009;
+  --color-inverse-primary: #ff6b6b;
+
+  --color-secondary: #5a5c5e;
+  --color-secondary-fixed: #e2e2e5;
+  --color-secondary-fixed-dim: #d4d4d7;
+  --color-secondary-dim: #4e5052;
+  --color-secondary-container: #e2e2e5;
+  --color-on-secondary: #f2f2f5;
+  --color-on-secondary-fixed: #3e3f42;
+  --color-on-secondary-fixed-variant: #5a5c5e;
+  --color-on-secondary-container: #505254;
+
+  --color-tertiary: #7343a9;
+  --color-tertiary-fixed: #ca9cff;
+  --color-tertiary-fixed-dim: #be8df8;
+  --color-tertiary-dim: #66369c;
+  --color-tertiary-container: #ca9cff;
+  --color-on-tertiary: #faefff;
+  --color-on-tertiary-fixed: #26004a;
+  --color-on-tertiary-fixed-variant: #4e1c84;
+  --color-on-tertiary-container: #450e7b;
+
+  --color-surface: #fff4f4;
+  --color-surface-dim: #ffc6cf;
+  --color-surface-bright: #fff4f4;
+  --color-surface-tint: #aa2c32;
+  --color-surface-variant: #ffd1d8;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #ffecee;
+  --color-surface-container: #ffe1e5;
+  --color-surface-container-high: #ffd9df;
+  --color-surface-container-highest: #ffd1d8;
+  --color-inverse-surface: #24020b;
+  --color-inverse-on-surface: #cb8c98;
+
+  --color-background: #fff4f4;
+  --color-on-background: #4c212b;
+  --color-on-surface: #4c212b;
+  --color-on-surface-variant: #814c57;
+
+  --color-outline: #a06772;
+  --color-outline-variant: #dc9ca8;
+
+  --color-error: #b02500;
+  --color-error-dim: #b92902;
+  --color-error-container: #f95630;
+  --color-on-error: #ffefec;
+  --color-on-error-container: #520c00;
+
+  /* Border Radius */
+  --radius-DEFAULT: 0.125rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.5rem;
+  --radius-full: 0.75rem;
+
+  /* Font Families */
+  --font-headline: "Space Grotesk", sans-serif;
+  --font-body: "Manrope", sans-serif;
+  --font-label: "Lexend", sans-serif;
+}
+
+/* Custom CSS classes from original HTML */
+.material-symbols-outlined {
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.5rem;
+}
+
+.text-stroke {
+  -webkit-text-stroke: 1px currentColor;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-stroke-distinct {
+  -webkit-text-stroke: 2px #4c212b;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.2));
+}
+
+.hero-text-shadow {
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Base body styles */
+body {
+  background-color: #fff4f4;
+  color: #4c212b;
+}
