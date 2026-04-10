@@ -8,9 +8,9 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { icon: "speed", label: "Home", path: "/" },
-  { icon: "history", label: "Stats", path: "/stats" },
-  { icon: "calendar_today", label: "Races", path: "/races" },
-  { icon: "person", label: "Profile", path: "/profile" },
+  { icon: "history", label: "Simulations", path: "/simulations" },
+  { icon: "box", label: "Product", path: "/product" },
+  { icon: "person", label: "About Us", path: "/about" },
 ];
 const MobileNav = () => {
   return (
@@ -20,8 +20,7 @@ const MobileNav = () => {
           key={item.label}
           to={item.path}
           className={({ isActive }) =>
-            `flex flex-col items-center gap-1 ${
-              isActive ? "text-primary" : "text-rose-900/40"
+            `flex flex-col items-center gap-1 ${isActive ? "text-primary" : "text-rose-900/40"
             }`
           }
         >
