@@ -188,7 +188,7 @@ export default function IMUTelemetry() {
             step="0.01"
             value={noise}
             onChange={(e) => setNoise(parseFloat(e.target.value))}
-            className="w-full sm:w-32 h-1.5 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
+            className="w-full sm:w-32"
           />
           <div className="bg-white border border-slate-300 rounded-lg px-3 py-1 min-w-[3rem] text-center">
             <span className="text-sm text-slate-800 font-medium">{noise.toFixed(2)}</span>

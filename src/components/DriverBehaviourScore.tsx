@@ -8,6 +8,26 @@ const WEIGHTS = {
   rollover: 200,
 };
 
+// Stable slider component – defined outside render so React never remounts it mid-drag
+const SliderControl = ({ label, value, onChange, max }: { label: string, value: number, onChange: (v: number) => void, max: number }) => (
+  <div className="flex items-center gap-4 py-1">
+    <span className="text-slate-600 text-sm font-medium w-36 shrink-0">{label}</span>
+    <div className="relative flex-1 flex items-center">
+      <input 
+        type="range" 
+        min="0" 
+        max={max} 
+        value={value} 
+        onChange={e => onChange(Number(e.target.value))} 
+        className="w-full" 
+      />
+    </div>
+    <div className="w-14 bg-white border border-slate-300 rounded-xl text-center py-[2px] text-sm font-medium text-slate-800">
+      {value}
+    </div>
+  </div>
+);
+
 export default function DriverBehaviourScore() {
   const [acc, setAcc] = useState(0);
   const [corner, setCorner] = useState(2);
@@ -42,26 +62,6 @@ export default function DriverBehaviourScore() {
   const reset = () => {
     setAcc(0); setCorner(0); setZigzag(0); setSpeeding(0); setRollover(0);
   };
-
-  const SliderControl = ({ label, value, onChange, max }: { label: string, value: number, onChange: (v: number) => void, max: number }) => (
-    <div className="flex items-center gap-4 py-1">
-      <span className="text-slate-600 text-sm font-medium w-36 shrink-0">{label}</span>
-      <div className="relative flex-1 flex items-center">
-        {/* Custom thick tracks for the sliders to match the image */}
-        <input 
-          type="range" 
-          min="0" 
-          max={max} 
-          value={value} 
-          onChange={e => onChange(Number(e.target.value))} 
-          className="w-full h-1.5 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-[#1a56db]" 
-        />
-      </div>
-      <div className="w-14 bg-white border border-slate-300 rounded-xl text-center py-[2px] text-sm font-medium text-slate-800">
-        {value}
-      </div>
-    </div>
-  );
 
   return (
     <div className="w-full h-full bg-[#f0f4f8] rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col pt-2">

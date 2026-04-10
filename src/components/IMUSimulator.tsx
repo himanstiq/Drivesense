@@ -66,6 +66,26 @@ const SceneContainer = memo(({ dataRef }: { dataRef: MutableRefObject<any> }) =>
 // Avoid React warning about missing display name
 SceneContainer.displayName = "SceneContainer";
 
+// Stable slider component – defined outside render so React never remounts it mid-drag
+const IMUSlider = ({ label, value, onChange, min, max, step }: {
+  label: string; value: number; onChange: (v: number) => void;
+  min: number; max: number; step: number;
+}) => (
+  <div className="flex items-center gap-2 lg:gap-4 py-1">
+    <span className="text-slate-600 text-sm font-medium w-28 lg:w-32 shrink-0 text-right pr-2">{label}</span>
+    <div className="relative flex-1 flex items-center">
+      <input
+        type="range" min={min} max={max} step={step} value={value}
+        onChange={e => onChange(Number(e.target.value))}
+        className="w-full"
+      />
+    </div>
+    <div className="w-12 lg:w-14 bg-white border border-slate-300 rounded-xl text-center py-[2px] text-sm font-medium text-slate-800 shrink-0">
+      {value}
+    </div>
+  </div>
+);
+
 export default function IMUSimulator() {
   const [accX, setAccX] = useState(0);
   const [accY, setAccY] = useState(0);
@@ -91,22 +111,6 @@ export default function IMUSimulator() {
     updateState('roll', 0, setRoll);
     updateState('yaw', 0, setYaw);
   };
-
-  const SliderControl = ({ label, value, stateKey, setter, min, max, step }: any) => (
-    <div className="flex items-center gap-2 lg:gap-4 py-1">
-      <span className="text-slate-600 text-sm font-medium w-28 lg:w-32 shrink-0 text-right pr-2">{label}</span>
-      <div className="relative flex-1 flex items-center">
-        <input
-          type="range" min={min} max={max} step={step} value={value}
-          onChange={e => updateState(stateKey, Number(e.target.value), setter)}
-          className="w-full h-1.5 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-[#1a56db]"
-        />
-      </div>
-      <div className="w-12 lg:w-14 bg-white border border-slate-300 rounded-xl text-center py-[2px] text-sm font-medium text-slate-800 shrink-0">
-        {value}
-      </div>
-    </div>
-  );
 
   return (
     <div className="w-full h-full bg-[#f0f4f8] rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col pt-2">
@@ -151,12 +155,12 @@ export default function IMUSimulator() {
       {/* Controls Container */}
       <div className="px-6 pb-6 pt-2">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-          <SliderControl label="Accel X (Fwd)" stateKey="accX" setter={setAccX} min={-2} max={2} step={0.1} value={accX} />
-          <SliderControl label="Accel Y (Lat)" stateKey="accY" setter={setAccY} min={-2} max={2} step={0.1} value={accY} />
-          <SliderControl label="Accel Z (Vert)" stateKey="accZ" setter={setAccZ} min={-2} max={2} step={0.1} value={accZ} />
-          <SliderControl label="Pitch (Tilt)" stateKey="pitch" setter={setPitch} min={-90} max={90} step={1} value={pitch} />
-          <SliderControl label="Roll (Lean)" stateKey="roll" setter={setRoll} min={-90} max={90} step={1} value={roll} />
-          <SliderControl label="Yaw (Turn)" stateKey="yaw" setter={setYaw} min={-90} max={90} step={1} value={yaw} />
+          <IMUSlider label="Accel X (Fwd)" min={-2} max={2} step={0.1} value={accX} onChange={v => updateState('accX', v, setAccX)} />
+          <IMUSlider label="Accel Y (Lat)" min={-2} max={2} step={0.1} value={accY} onChange={v => updateState('accY', v, setAccY)} />
+          <IMUSlider label="Accel Z (Vert)" min={-2} max={2} step={0.1} value={accZ} onChange={v => updateState('accZ', v, setAccZ)} />
+          <IMUSlider label="Pitch (Tilt)" min={-90} max={90} step={1} value={pitch} onChange={v => updateState('pitch', v, setPitch)} />
+          <IMUSlider label="Roll (Lean)" min={-90} max={90} step={1} value={roll} onChange={v => updateState('roll', v, setRoll)} />
+          <IMUSlider label="Yaw (Turn)" min={-90} max={90} step={1} value={yaw} onChange={v => updateState('yaw', v, setYaw)} />
         </div>
 
         <div className="mt-5 w-full">
