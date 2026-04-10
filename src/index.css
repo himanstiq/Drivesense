@@ -107,3 +107,12 @@ body {
   background-color: #fff4f4;
   color: #4c212b;
 }
+
+/* Hide scrollbar universally */
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;    /* Firefox */
+}
