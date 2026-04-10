@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
+import { useThrottledRAF } from '../hooks/useThrottledRAF';
 
 type EventType = 'none' | 'pothole' | 'brake';
 
@@ -10,18 +11,20 @@ interface DataPoint {
 }
 
 export default function EdgeAISimulator() {
-  const [history, setHistory] = useState<DataPoint[]>(new Array(150).fill({ time: 0, long: 0, vert: 0, eventType: 'none' }));
+  const [history, setHistory] = useState<DataPoint[]>(new Array(150).fill(null).map(() => ({ time: 0, long: 0, vert: 0, eventType: 'none' as EventType })));
 
   const simRef = useRef<{ type: EventType, durationMs: number, elapsedMs: number }>({ type: 'none', durationMs: 0, elapsedMs: 0 });
   const [stats, setStats] = useState({ peakLong: 0, peakVert: 0, duration: 0 });
 
-  useEffect(() => {
-    let lastTime = performance.now();
-    let frameId: number;
+  // Mutable refs for high-frequency data
+  const historyRef = useRef<DataPoint[]>(new Array(150).fill(null).map(() => ({ time: 0, long: 0, vert: 0, eventType: 'none' as EventType })));
+  const lastTimeRef = useRef(performance.now());
 
-    const loop = (time: number) => {
-      const dt = time - lastTime;
-      lastTime = time;
+  useThrottledRAF(
+    () => {
+      const now = performance.now();
+      const dt = now - lastTimeRef.current;
+      lastTimeRef.current = now;
 
       const sim = simRef.current;
       let long = (Math.random() * 0.1) - 0.05;
@@ -40,26 +43,39 @@ export default function EdgeAISimulator() {
             long += intensity * 2.5;
           }
         } else {
-          // Event finished
           sim.type = 'none';
         }
       }
 
-      setHistory(h => {
-        const next = [...h];
-        next.shift();
-        next.push({ time: time, long, vert, eventType: inEvent ? sim.type : 'none' });
-        return next;
-      });
+      const point: DataPoint = { time: now, long, vert, eventType: inEvent ? sim.type : 'none' };
+      historyRef.current.push(point);
+      if (historyRef.current.length > 150) historyRef.current.shift();
+    },
+    () => {
+      // Flush to React state at ~15fps
+      const snapshot = [...historyRef.current];
+      setHistory(snapshot);
 
-      frameId = requestAnimationFrame(loop);
-    };
+      // Compute stats from the snapshot (previously in a separate useEffect)
+      let currentEvent: EventType = 'none';
+      for (const point of snapshot) {
+        if (point.eventType !== 'none') currentEvent = point.eventType;
+      }
+      if (currentEvent !== 'none') {
+        const activePoints = snapshot.filter(d => d.eventType === currentEvent);
+        if (activePoints.length > 0) {
+          setStats({
+            peakLong: Math.max(...activePoints.map(d => Math.abs(d.long))),
+            peakVert: Math.max(...activePoints.map(d => Math.abs(d.vert))),
+            duration: currentEvent === 'pothole' ? 100 : 400
+          });
+        }
+      }
+    },
+    []
+  );
 
-    frameId = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(frameId);
-  }, []);
-
-  // Compute derived state from current history window
+  // Compute derived state from current history snapshot (runs at render rate, ~15fps)
   let currentEvent: EventType = 'none';
   let activeStartIndex = -1;
   let activeEndIndex = -1;
@@ -72,25 +88,11 @@ export default function EdgeAISimulator() {
     }
   }
 
-  useEffect(() => {
-    if (currentEvent !== 'none') {
-      const activePoints = history.filter(d => d.eventType === currentEvent);
-      if (activePoints.length > 0) {
-        setStats({
-          peakLong: Math.max(...activePoints.map(d => Math.abs(d.long))),
-          peakVert: Math.max(...activePoints.map(d => Math.abs(d.vert))),
-          duration: currentEvent === 'pothole' ? 100 : 400
-        });
-      }
-    } else {
-       // Decay stats when idle slowly for aesthetics, or just set to 0. 
-       // Keeping them as last seen is often better than resetting to 0 abruptly.
-    }
-  }, [history, currentEvent]);
-
   const clearData = () => {
     simRef.current = { type: 'none', durationMs: 0, elapsedMs: 0 };
-    setHistory(new Array(150).fill({ time: 0, long: 0, vert: 0, eventType: 'none' }));
+    const empty = new Array(150).fill(null).map(() => ({ time: 0, long: 0, vert: 0, eventType: 'none' as EventType }));
+    historyRef.current = empty;
+    setHistory([...empty]);
     setStats({ peakLong: 0, peakVert: 0, duration: 0 });
   };
 

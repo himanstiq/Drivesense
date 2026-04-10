@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
+import { useThrottledRAF } from '../hooks/useThrottledRAF';
 
 type Surface = 'Smooth Asphalt' | 'Wet Leaves' | 'Gravel' | 'Dirt Track';
 type ContextState = 'Dry' | 'Raining';
@@ -27,36 +28,46 @@ export default function AdaptiveTelemetry() {
 
   const brakingProgressRef = useRef(0);
   const brakingTargetRef = useRef(0);
-  const penaltyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const penaltyTimerRef = useRef<number | null>(null);
+
+  // Mutable refs for high-frequency data — flushed to state at ~15fps
+  const xHistoryRef = useRef<number[]>(Array(CHART_LENGTH).fill(0));
+  const zHistoryRef = useRef<number[]>(Array(CHART_LENGTH).fill(1));
+  const brakeRef = useRef(0);
+  const zNoiseRef = useRef(0);
 
   // Dynamic Limit Calculation
   const currentLimit = SURFACE_DATA[surface].baseLimit + (contextState === 'Raining' ? 0.3 : 0);
   const isNominal = zNoise < 0.15;
 
-  useEffect(() => {
-    let animationFrameId: number;
+  // Read surface/context from refs inside the tick to avoid stale closures
+  const surfaceRef = useRef(surface);
+  const contextRef = useRef(contextState);
+  const limitRef = useRef(currentLimit);
+  surfaceRef.current = surface;
+  contextRef.current = contextState;
+  limitRef.current = currentLimit;
 
-    const tick = () => {
+  useThrottledRAF(
+    () => {
       // 1. Process Braking Interpolation
       if (brakingTargetRef.current !== 0) {
-        // Attack
         brakingProgressRef.current += (brakingTargetRef.current - brakingProgressRef.current) * 0.15;
         if (Math.abs(brakingTargetRef.current - brakingProgressRef.current) < 0.01) {
-          brakingTargetRef.current = 0; // Trigger release
+          brakingTargetRef.current = 0;
         }
       } else {
-        // Release / Decay
         brakingProgressRef.current += (0 - brakingProgressRef.current) * 0.05;
       }
 
       const currentBrake = brakingProgressRef.current;
-      setBrakingG(currentBrake);
+      brakeRef.current = currentBrake;
 
       // Check for Penalty Trigger
-      if (currentBrake < currentLimit && !penaltyTimerRef.current) {
+      if (currentBrake < limitRef.current && !penaltyTimerRef.current) {
         setPenaltyActive(true);
         setPenaltyText("PENALTY APPLIED: HARSH BRAKING DETECTED");
-        penaltyTimerRef.current = setTimeout(() => {
+        penaltyTimerRef.current = window.setTimeout(() => {
           setPenaltyActive(false);
           setPenaltyText("");
           penaltyTimerRef.current = null;
@@ -64,30 +75,29 @@ export default function AdaptiveTelemetry() {
       }
 
       // 2. Generate Noise based on Surface
-      const sData = SURFACE_DATA[surface];
-      const zAmplitude = sData.noise + (contextState === 'Raining' ? 0.02 : 0);
+      const sData = SURFACE_DATA[surfaceRef.current];
+      const zAmplitude = sData.noise + (contextRef.current === 'Raining' ? 0.02 : 0);
       const newZ = 1 + (Math.random() - 0.5) * zAmplitude;
-      setZNoise(zAmplitude);
+      zNoiseRef.current = zAmplitude;
 
       const xAmplitude = 0.01 + (zAmplitude * 0.1);
       const newX = currentBrake + (Math.random() - 0.5) * xAmplitude;
 
-      // 3. Update Histories
-      setXHistory(prev => {
-        const arr = [...prev, newX];
-        return arr.slice(-CHART_LENGTH);
-      });
-      setZHistory(prev => {
-        const arr = [...prev, newZ];
-        return arr.slice(-CHART_LENGTH);
-      });
-
-      animationFrameId = requestAnimationFrame(tick);
-    };
-
-    animationFrameId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [surface, contextState, currentLimit]);
+      // 3. Accumulate into refs (no React re-render)
+      xHistoryRef.current.push(newX);
+      if (xHistoryRef.current.length > CHART_LENGTH) xHistoryRef.current.shift();
+      zHistoryRef.current.push(newZ);
+      if (zHistoryRef.current.length > CHART_LENGTH) zHistoryRef.current.shift();
+    },
+    () => {
+      // Flush to React state at ~15fps
+      setBrakingG(brakeRef.current);
+      setZNoise(zNoiseRef.current);
+      setXHistory([...xHistoryRef.current]);
+      setZHistory([...zHistoryRef.current]);
+    },
+    [surface, contextState]
+  );
 
   const triggerBrake = (force: number) => {
     brakingTargetRef.current = force;

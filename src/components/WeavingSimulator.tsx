@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
+import { useThrottledRAF } from '../hooks/useThrottledRAF';
 
 type EventType = 'none' | 'weaving';
 
@@ -13,17 +14,18 @@ export default function WeavingSimulator() {
   const fps = 60;
   const historySize = (windowMs / 1000) * fps; // 180 points
   
-  const [history, setHistory] = useState<DataPoint[]>(new Array(historySize).fill({ time: 0, lean: 0, eventType: 'none' }));
+  const [history, setHistory] = useState<DataPoint[]>(new Array(historySize).fill(null).map(() => ({ time: 0, lean: 0, eventType: 'none' as EventType })));
   const simRef = useRef<{ type: EventType, durationMs: number, elapsedMs: number }>({ type: 'none', durationMs: 0, elapsedMs: 0 });
 
+  // Mutable ref for high-frequency data
+  const historyRef = useRef<DataPoint[]>(new Array(historySize).fill(null).map(() => ({ time: 0, lean: 0, eventType: 'none' as EventType })));
+  const lastTimeRef = useRef(performance.now());
 
-  useEffect(() => {
-    let lastTime = performance.now();
-    let frameId: number;
-
-    const loop = (time: number) => {
-      const dt = time - lastTime;
-      lastTime = time;
+  useThrottledRAF(
+    () => {
+      const now = performance.now();
+      const dt = now - lastTimeRef.current;
+      lastTimeRef.current = now;
 
       const sim = simRef.current;
       let lean = (Math.random() * 2) - 1; // Base noise
@@ -34,28 +36,22 @@ export default function WeavingSimulator() {
         if (sim.elapsedMs <= sim.durationMs) {
           inEvent = true;
           if (sim.type === 'weaving') {
-            // High amplitude sine wave to simulate weaving, period = 1000ms
             const intensity = Math.sin((sim.elapsedMs / 1000) * Math.PI * 2);
             lean += Math.min(35, Math.max(-35, intensity * 35));
           }
         } else {
-          sim.type = 'none'; // finish
+          sim.type = 'none';
         }
       }
 
-      setHistory(h => {
-        const next = [...h];
-        next.shift();
-        next.push({ time: time, lean, eventType: inEvent ? sim.type : 'none' });
-        return next;
-      });
-
-      frameId = requestAnimationFrame(loop);
-    };
-
-    frameId = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(frameId);
-  }, []);
+      historyRef.current.push({ time: now, lean, eventType: inEvent ? sim.type : 'none' });
+      if (historyRef.current.length > historySize) historyRef.current.shift();
+    },
+    () => {
+      setHistory([...historyRef.current]);
+    },
+    []
+  );
 
   // Compute derived state
   let currentEvent: EventType = 'none';

@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Stage, Environment } from '@react-three/drei';
+import { OrbitControls, Grid } from '@react-three/drei';
 import * as THREE from 'three';
+import { useThrottledRAF } from '../hooks/useThrottledRAF';
 
 type Maneuver = 'Idle' | 'Hard Braking' | 'Sharp Left' | 'Sharp Right' | 'Wheelie';
 
@@ -11,12 +12,13 @@ interface Telemetry {
   mag: [number, number, number];
 }
 
+// Bike body lies along X-axis: rotation.x = ROLL (lean), rotation.z = PITCH (nose up/down), rotation.y = YAW (turn)
 const targetRotations: Record<Maneuver, [number, number, number]> = {
   'Idle': [0, 0, 0],
-  'Hard Braking': [-0.2, 0, 0],
-  'Sharp Left': [0, 0.4, -0.3],
-  'Sharp Right': [0, -0.4, 0.3],
-  'Wheelie': [0.6, 0, 0]
+  'Hard Braking': [0, 0, -0.45],       // Nose dips down — rider pitches forward over handlebars
+  'Sharp Left': [0.50, 0.25, 0],       // Lean left + slight yaw left
+  'Sharp Right': [-0.50, -0.25, 0],    // Lean right + slight yaw right
+  'Wheelie': [0, 0, 0.65]              // Front lifts up
 };
 
 const baseline: Telemetry = {
@@ -61,19 +63,33 @@ const IMUBlockModel = ({ maneuver }: { maneuver: Maneuver }) => {
   });
 
   return (
-    <group ref={groupRef}>
-      {/* Main Body */}
+    <group ref={groupRef} scale={1.6}>
+      {/* Main PCB Body — elongated along X */}
       <mesh>
-        <boxGeometry args={[4, 1, 1.5]} />
-        <meshStandardMaterial color="#1e293b" />
+        <boxGeometry args={[4.5, 0.3, 2]} />
+        <meshStandardMaterial color="#1e293b" roughness={0.4} metalness={0.6} />
       </mesh>
-      {/* Sensor Head / Connector */}
-      <mesh position={[2.1, 0, 0]}>
-        <boxGeometry args={[0.2, 0.8, 1]} />
-        <meshStandardMaterial color="#f59e0b" />
+      {/* Front indicator (yellow band = heading direction) */}
+      <mesh position={[2.4, 0, 0]}>
+        <boxGeometry args={[0.25, 0.25, 1.6]} />
+        <meshStandardMaterial color="#f59e0b" roughness={0.3} metalness={0.5} />
+      </mesh>
+      {/* Chip on top */}
+      <mesh position={[0, 0.22, 0]}>
+        <boxGeometry args={[1.0, 0.12, 0.8]} />
+        <meshStandardMaterial color="#333" />
+      </mesh>
+      {/* Small markings / pads */}
+      <mesh position={[-1.5, 0.18, 0.5]}>
+        <boxGeometry args={[0.3, 0.06, 0.3]} />
+        <meshStandardMaterial color="#64748b" />
+      </mesh>
+      <mesh position={[-1.5, 0.18, -0.5]}>
+        <boxGeometry args={[0.3, 0.06, 0.3]} />
+        <meshStandardMaterial color="#64748b" />
       </mesh>
       {/* Axes Helper */}
-      <axesHelper args={[3.5]} />
+      <axesHelper args={[4]} />
     </group>
   );
 };
@@ -95,33 +111,30 @@ export default function IMUTelemetry() {
   const [noise, setNoise] = useState(0.05);
   const [telemetry, setTelemetry] = useState<Telemetry>(baseline);
 
-  useEffect(() => {
-    let animationFrameId: number;
-    let currentTelem = { ...telemetry };
+  // Mutable ref for the physics loop — updated at 60fps, flushed to state at ~15fps
+  const telemRef = useRef<Telemetry>({ ...baseline });
 
-    const updateTelemetry = () => {
+  useThrottledRAF(
+    () => {
       const target = targets[maneuver];
       const lerpFactor = 0.1;
+      const curr = telemRef.current;
 
-      const lerpArr = (curr: number[], targ: number[]) =>
-        curr.map((c, i) => c + (targ[i] - c) * lerpFactor);
+      const lerpArr = (c: number[], t: number[]) =>
+        c.map((v, i) => v + (t[i] - v) * lerpFactor);
 
       const addNoise = (arr: number[], baseAmount: number) =>
         arr.map(v => v + (Math.random() - 0.5) * baseAmount * (noise / 0.05));
 
-      currentTelem = {
-        acc: addNoise(lerpArr(currentTelem.acc, target.acc), 0.05) as [number, number, number],
-        gyro: addNoise(lerpArr(currentTelem.gyro, target.gyro), 1.5) as [number, number, number],
-        mag: addNoise(lerpArr(currentTelem.mag, target.mag), 0.02) as [number, number, number],
+      telemRef.current = {
+        acc: addNoise(lerpArr(curr.acc, target.acc), 0.05) as [number, number, number],
+        gyro: addNoise(lerpArr(curr.gyro, target.gyro), 1.5) as [number, number, number],
+        mag: addNoise(lerpArr(curr.mag, target.mag), 0.02) as [number, number, number],
       };
-
-      setTelemetry(currentTelem);
-      animationFrameId = requestAnimationFrame(updateTelemetry);
-    };
-
-    animationFrameId = requestAnimationFrame(updateTelemetry);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [maneuver, noise]);
+    },
+    () => setTelemetry({ ...telemRef.current }),
+    [maneuver, noise]
+  );
 
   const maneuvers: Maneuver[] = ['Idle', 'Hard Braking', 'Sharp Left', 'Sharp Right', 'Wheelie'];
 
@@ -133,18 +146,29 @@ export default function IMUTelemetry() {
 
       <div className="bg-white rounded-2xl mx-6 shadow-sm border border-slate-100 overflow-hidden flex-shrink-0">
         <div className="h-[300px] w-full relative bg-white border-b border-slate-100">
-          <Canvas shadows camera={{ position: [10, 8, 15], fov: 45 }} className="relative z-10">
-            <ambientLight intensity={0.6} />
-            <directionalLight position={[10, 10, 5]} intensity={1.0} />
-            <Environment preset="city" environmentIntensity={0.4} />
-            <Stage environment={null} intensity={1} shadows={false} adjustCamera={false}>
-              <IMUBlockModel maneuver={maneuver} />
-            </Stage>
+          <Canvas camera={{ position: [8, 6, 10], fov: 50 }} className="relative z-10">
+            <ambientLight intensity={0.7} />
+            <directionalLight position={[8, 12, 8]} intensity={1.0} />
+            <directionalLight position={[-5, 5, -5]} intensity={0.3} />
+
+            {/* Cartesian ground grid */}
+            <Grid
+              infiniteGrid
+              fadeDistance={30}
+              cellSize={1}
+              sectionSize={5}
+              cellColor="#cbd5e1"
+              sectionColor="#94a3b8"
+              position={[0, -2, 0]}
+            />
+
+            <IMUBlockModel maneuver={maneuver} />
+
             <OrbitControls
               enableZoom={true}
               makeDefault
-              minPolarAngle={Math.PI / 4}
-              maxPolarAngle={Math.PI / 2.1}
+              minPolarAngle={Math.PI / 6}
+              maxPolarAngle={Math.PI / 2.2}
               autoRotate={false}
             />
           </Canvas>

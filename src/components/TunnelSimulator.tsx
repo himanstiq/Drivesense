@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Bike } from 'lucide-react';
+import { useThrottledRAF } from '../hooks/useThrottledRAF';
 
 export default function TunnelSimulator() {
     const [time, setTime] = useState(0);
@@ -8,59 +9,68 @@ export default function TunnelSimulator() {
     const [gpsRel, setGpsRel] = useState('100%');
     const [signal, setSignal] = useState('OK');
 
-    const requestRef = useRef<number>(0);
     const startTimeRef = useRef<number>(0);
+    const simulatingRef = useRef(false);
 
     const simulationDuration = 10; // seconds
 
-    const runSimulation = (timeNow: number) => {
-        if (!startTimeRef.current) startTimeRef.current = timeNow;
-        const elapsed = (timeNow - startTimeRef.current) / 1000;
+    // Mutable refs for high-frequency data
+    const timeRef = useRef(0);
+    const modeRef = useRef('OPEN AIR');
+    const gpsRef = useRef('100%');
+    const signalRef = useRef('OK');
 
-        if (elapsed > simulationDuration) {
-            setTime(simulationDuration);
-            setSimulating(false);
-            setMode('OPEN AIR');
-            setGpsRel('100%');
-            setSignal('OK');
-            startTimeRef.current = 0;
-            return;
-        }
+    useThrottledRAF(
+        () => {
+            if (!simulatingRef.current) return;
 
-        setTime(elapsed);
+            const now = performance.now();
+            if (!startTimeRef.current) startTimeRef.current = now;
+            const elapsed = (now - startTimeRef.current) / 1000;
 
-        // Tunnel logic: enter at 2s, exit at 8s
-        if (elapsed >= 2 && elapsed <= 8) {
-            setMode('TUNNEL');
-            setGpsRel('0%');
-            setSignal('LOST');
-        } else {
-            setMode('OPEN AIR');
-            setGpsRel('100%');
-            setSignal('OK');
-        }
-
-        requestRef.current = requestAnimationFrame(runSimulation);
-    };
-
-    useEffect(() => {
-        if (simulating) {
-            requestRef.current = requestAnimationFrame(runSimulation);
-        } else if (requestRef.current) {
-            cancelAnimationFrame(requestRef.current);
-            requestRef.current = 0;
-        }
-        return () => {
-            if (requestRef.current) {
-                cancelAnimationFrame(requestRef.current);
+            if (elapsed > simulationDuration) {
+                timeRef.current = simulationDuration;
+                modeRef.current = 'OPEN AIR';
+                gpsRef.current = '100%';
+                signalRef.current = 'OK';
+                startTimeRef.current = 0;
+                simulatingRef.current = false;
+                // These fire once (end of sim), acceptable:
+                setSimulating(false);
+                setTime(simulationDuration);
+                setMode('OPEN AIR');
+                setGpsRel('100%');
+                setSignal('OK');
+                return;
             }
-        };
-    }, [simulating]);
+
+            timeRef.current = elapsed;
+
+            if (elapsed >= 2 && elapsed <= 8) {
+                modeRef.current = 'TUNNEL';
+                gpsRef.current = '0%';
+                signalRef.current = 'LOST';
+            } else {
+                modeRef.current = 'OPEN AIR';
+                gpsRef.current = '100%';
+                signalRef.current = 'OK';
+            }
+        },
+        () => {
+            if (!simulatingRef.current) return;
+            setTime(timeRef.current);
+            setMode(modeRef.current);
+            setGpsRel(gpsRef.current);
+            setSignal(signalRef.current);
+        },
+        [simulating]
+    );
 
     const startSimulation = () => {
         if (!simulating) {
             setTime(0);
             startTimeRef.current = 0;
+            simulatingRef.current = true;
             setSimulating(true);
         }
     };

@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
+import { useThrottledRAF } from '../hooks/useThrottledRAF';
 
 export default function EventEngine() {
   const [currentG, setCurrentG] = useState(0);
@@ -21,28 +22,31 @@ export default function EventEngine() {
   // State machine logic
   const stateRef = useRef({ accum: 0, penaltyFired: false });
 
-  useEffect(() => {
-    let lastTime = performance.now();
-    let frameId: number;
+  // Mutable refs for high-frequency data
+  const historyRef = useRef<number[]>(new Array(200).fill(0));
+  const gRef = useRef(0);
+  const accumRef = useRef(0);
+  const brakingRef = useRef(false);
+  const lastTimeRef = useRef(performance.now());
 
-    const loop = (time: number) => {
-      const dt = time - lastTime;
-      lastTime = time;
+  useThrottledRAF(
+    () => {
+      const now = performance.now();
+      const dt = now - lastTimeRef.current;
+      lastTimeRef.current = now;
 
       let nextG = 0;
       const sim = simRef.current;
       
       if (sim.active) {
-        if (sim.startTime === null) sim.startTime = time;
-        const elapsed = time - sim.startTime;
+        if (sim.startTime === null) sim.startTime = now;
+        const elapsed = now - sim.startTime;
         if (elapsed < sim.duration) {
-          // Add noise to target
           nextG = sim.targetG + (Math.random() * 0.04 - 0.02);
         } else {
           sim.active = false;
         }
       } else {
-        // baseline noise
         nextG = Math.random() * 0.01;
       }
 
@@ -68,23 +72,22 @@ export default function EventEngine() {
         stateRef.current.penaltyFired = false;
       }
 
-      setCurrentG(nextG);
-      setAccumulatedTime(Math.floor(stateRef.current.accum));
-      setIsBraking(isOver);
+      gRef.current = nextG;
+      accumRef.current = Math.floor(stateRef.current.accum);
+      brakingRef.current = isOver;
 
-      setHistory(h => {
-        const next = [...h];
-        next.shift();
-        next.push(nextG);
-        return next;
-      });
-
-      frameId = requestAnimationFrame(loop);
-    };
-
-    frameId = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(frameId);
-  }, []);
+      historyRef.current.push(nextG);
+      if (historyRef.current.length > 200) historyRef.current.shift();
+    },
+    () => {
+      // Flush to React state at ~15fps
+      setCurrentG(gRef.current);
+      setAccumulatedTime(accumRef.current);
+      setIsBraking(brakingRef.current);
+      setHistory([...historyRef.current]);
+    },
+    []
+  );
 
   const triggerPothole = () => {
     simRef.current = { active: true, targetG: 0.8, duration: 50, startTime: null };
